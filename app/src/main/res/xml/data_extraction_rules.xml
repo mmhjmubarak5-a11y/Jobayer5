@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!--
+    Sample data extraction rules file; uncomment lines to control what gets extracted and reused.
+    See https://developer.android.com/about/versions/13/behavior-changes-13#backup-restore
+    for full documentation about using data extraction rules introduced in Android 13.
+    -->
+    <domain-config>
+        <domain name="shared_pref" />
+        <domain name="file" />
+        <domain name="database" />
+        <domain name="file_uri" />
+    </domain-config>
+</data-extraction-rules>
