@@ -2,168 +2,268 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Phone Camera Access</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
         }
         
         .container {
             background: white;
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
             max-width: 500px;
-            width: 90%;
             text-align: center;
         }
         
         h1 {
             color: #333;
-            margin-top: 0;
+            margin: 20px 0;
+            font-size: 24px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #856404;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .warning.show {
+            display: block;
         }
         
         video {
             width: 100%;
-            max-width: 400px;
+            max-width: 100%;
             height: auto;
             border-radius: 10px;
             background: #000;
-            margin: 20px 0;
+            margin: 15px 0;
             display: none;
+            object-fit: cover;
         }
         
         video.active {
             display: block;
         }
         
-        .button-group {
+        .camera-mode {
+            margin: 15px 0;
             display: flex;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
             flex-wrap: wrap;
+        }
+        
+        .mode-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin: 20px 0;
         }
         
         button {
-            padding: 12px 24px;
+            padding: 14px 20px;
             font-size: 16px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
-            flex: 1;
-            min-width: 120px;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .start-btn {
             background: #667eea;
-            color: white;
+            grid-column: 1 / -1;
         }
         
-        .start-btn:hover {
+        .start-btn:active:not(:disabled) {
             background: #5568d3;
         }
         
         .stop-btn {
             background: #f56565;
-            color: white;
+            display: none;
         }
         
-        .stop-btn:hover {
+        .stop-btn.show {
+            display: block;
+        }
+        
+        .stop-btn:active:not(:disabled) {
             background: #e53e3e;
         }
         
         .capture-btn {
             background: #48bb78;
-            color: white;
+            display: none;
         }
         
-        .capture-btn:hover {
+        .capture-btn.show {
+            display: block;
+        }
+        
+        .capture-btn:active:not(:disabled) {
             background: #38a169;
         }
         
         .status {
-            margin-top: 20px;
-            padding: 15px;
+            margin: 15px 0;
+            padding: 12px;
             border-radius: 8px;
             font-weight: bold;
             display: none;
+            font-size: 14px;
         }
         
-        .status.active {
+        .status.show {
             display: block;
         }
         
         .status.success {
             background: #c6f6d5;
             color: #22543d;
+            border: 2px solid #48bb78;
         }
         
         .status.error {
             background: #fed7d7;
             color: #742a2a;
+            border: 2px solid #f56565;
+        }
+        
+        .status.info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 2px solid #4299e1;
         }
         
         .info {
             margin-top: 20px;
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
+            line-height: 1.6;
         }
         
-        .camera-mode {
-            margin: 20px 0;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+        .info-item {
+            margin: 8px 0;
         }
         
-        input[type="radio"] {
-            margin: 0 5px;
+        .permission-steps {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: left;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .permission-steps.show {
+            display: block;
+        }
+        
+        .permission-steps ol {
+            margin-left: 20px;
+            line-height: 1.8;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 Phone Camera Access</h1>
+        <h1>📱 Camera Access</h1>
         
-        <div class="camera-mode">
-            <label>
+        <div class="camera-mode" id="cameraMode">
+            <label class="mode-label">
                 <input type="radio" name="camera-mode" value="user" checked>
-                Front Camera
+                📷 Front
             </label>
-            <label>
+            <label class="mode-label">
                 <input type="radio" name="camera-mode" value="environment">
-                Back Camera
+                📷 Back
             </label>
         </div>
         
-        <video id="video" autoplay playsinline></video>
+        <video id="video" playsinline autoplay muted></video>
+        
+        <div class="warning" id="warning">
+            ⚠️ <strong>If permission is denied:</strong> Go to Settings → Apps → [Browser Name] → Permissions → Camera → Allow
+        </div>
+        
+        <div class="permission-steps" id="permissionSteps">
+            <strong>📍 Android Permission Steps:</strong>
+            <ol>
+                <li>Tap <strong>"Allow"</strong> when prompted</li>
+                <li>If you tapped <strong>"Deny"</strong>, go to Settings</li>
+                <li>Apps → Find your browser (Chrome, Firefox, etc.)</li>
+                <li>Permissions → Camera → Turn ON</li>
+            </ol>
+        </div>
         
         <div class="button-group">
-            <button class="start-btn" onclick="startCamera()">📷 Start Camera</button>
-            <button class="stop-btn" onclick="stopCamera()" style="display:none;" id="stopBtn">⏹️ Stop</button>
-            <button class="capture-btn" onclick="capturePhoto()" style="display:none;" id="captureBtn">📸 Capture</button>
+            <button class="start-btn" id="startBtn" onclick="startCamera()">
+                🎥 START CAMERA
+            </button>
+            <button class="stop-btn" id="stopBtn" onclick="stopCamera()">
+                ⏹️ STOP
+            </button>
+            <button class="capture-btn" id="captureBtn" onclick="capturePhoto()">
+                📸 CAPTURE
+            </button>
         </div>
         
         <div class="status" id="status"></div>
         
         <div class="info">
-            <p>✅ Requires camera permission on your device</p>
-            <p>💡 Works on mobile browsers (Chrome, Safari, Firefox)</p>
+            <div class="info-item">✅ <strong>Requires camera permission</strong></div>
+            <div class="info-item">💡 Works on Chrome, Firefox, Edge (Android)</div>
+            <div class="info-item">📸 Photos saved to Downloads/Gallery</div>
         </div>
     </div>
 
@@ -171,82 +271,139 @@
         let stream = null;
         const video = document.getElementById('video');
         const status = document.getElementById('status');
-        const startBtn = document.querySelector('.start-btn');
+        const warning = document.getElementById('warning');
+        const permissionSteps = document.getElementById('permissionSteps');
+        const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const captureBtn = document.getElementById('captureBtn');
+        const cameraMode = document.getElementById('cameraMode');
         const cameraModeRadios = document.querySelectorAll('input[name="camera-mode"]');
+
+        // Check browser support on page load
+        window.addEventListener('load', function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showStatus('❌ Your browser does not support camera access', 'error');
+                startBtn.disabled = true;
+                permissionSteps.classList.add('show');
+            }
+        });
 
         async function startCamera() {
             try {
+                showStatus('⏳ Requesting camera permission...', 'info');
+                
                 const facingMode = document.querySelector('input[name="camera-mode"]:checked').value;
                 
-                stream = await navigator.mediaDevices.getUserMedia({
+                const constraints = {
                     video: {
                         facingMode: facingMode,
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     },
                     audio: false
-                });
+                };
+
+                console.log('Requesting camera with constraints:', constraints);
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('Camera stream obtained:', stream);
 
                 video.srcObject = stream;
+                video.play().catch(err => console.error('Play error:', err));
                 video.classList.add('active');
                 
                 startBtn.style.display = 'none';
-                stopBtn.style.display = 'inline-block';
-                captureBtn.style.display = 'inline-block';
-                cameraModeRadios.forEach(radio => radio.disabled = true);
+                stopBtn.classList.add('show');
+                captureBtn.classList.add('show');
+                cameraMode.style.display = 'none';
+                warning.classList.remove('show');
+                permissionSteps.classList.remove('show');
                 
                 showStatus('✅ Camera started successfully!', 'success');
             } catch (err) {
-                showStatus(`❌ Error: ${err.message}`, 'error');
-                console.error('Camera access error:', err);
+                console.error('Camera error:', err);
+                console.error('Error name:', err.name);
+                console.error('Error message:', err.message);
+                
+                let errorMsg = '';
+                
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorMsg = '❌ Permission denied! Check settings.';
+                    warning.classList.add('show');
+                    permissionSteps.classList.add('show');
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    errorMsg = '❌ Camera not found on your device';
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    errorMsg = '❌ Camera is busy or in use by another app';
+                } else if (err.name === 'TypeError') {
+                    errorMsg = '❌ Browser does not support camera access';
+                } else {
+                    errorMsg = `❌ Error: ${err.message || 'Unknown error'}`;
+                }
+                
+                showStatus(errorMsg, 'error');
             }
         }
 
         function stopCamera() {
             if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(track => {
+                    console.log('Stopping track:', track);
+                    track.stop();
+                });
                 stream = null;
             }
             
             video.classList.remove('active');
             video.srcObject = null;
             
-            startBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-            captureBtn.style.display = 'none';
-            cameraModeRadios.forEach(radio => radio.disabled = false);
+            startBtn.style.display = 'block';
+            stopBtn.classList.remove('show');
+            captureBtn.classList.remove('show');
+            cameraMode.style.display = 'flex';
             
             showStatus('⏹️ Camera stopped', 'success');
         }
 
         function capturePhoto() {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-            
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/jpeg');
-            link.download = `photo-${Date.now()}.jpg`;
-            link.click();
-            
-            showStatus('📸 Photo captured and downloaded!', 'success');
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                if (canvas.width === 0 || canvas.height === 0) {
+                    showStatus('❌ Camera not ready yet', 'error');
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.download = `photo-${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showStatus('📸 Photo captured and downloaded!', 'success');
+            } catch (err) {
+                console.error('Capture error:', err);
+                showStatus('❌ Failed to capture photo', 'error');
+            }
         }
 
         function showStatus(message, type) {
             status.textContent = message;
-            status.className = `status active ${type}`;
+            status.className = `status show ${type}`;
         }
 
-        // Check browser support
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showStatus('❌ Your browser does not support camera access', 'error');
-            startBtn.disabled = true;
-        }
+        // Debug: Log permission status
+        navigator.permissions?.query({ name: 'camera' })
+            .then(result => {
+                console.log('Camera permission status:', result.state);
+            })
+            .catch(err => console.log('Permission query not supported:', err));
     </script>
 </body>
 </html>
